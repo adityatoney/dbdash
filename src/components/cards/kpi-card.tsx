@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { ArrowUp, ArrowDown, Info } from "lucide-react";
 import {
@@ -21,9 +22,18 @@ interface KpiCardProps {
   footnote?: string;
   trend?: { value: number; isPositive: boolean };
   icon?: LucideIcon;
+  action?: ReactNode;
 }
 
-export function KpiCard({ title, value, description, footnote, trend, icon: Icon }: KpiCardProps) {
+export function KpiCard({
+  title,
+  value,
+  description,
+  footnote,
+  trend,
+  icon: Icon,
+  action,
+}: KpiCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -46,28 +56,31 @@ export function KpiCard({ title, value, description, footnote, trend, icon: Icon
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center gap-2 mt-1">
-          {trend && (
-            <Badge
-              variant={trend.isPositive ? "default" : "destructive"}
-              className={cn(
-                "gap-0.5 text-xs",
-                trend.isPositive
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-              )}
-            >
-              {trend.isPositive ? (
-                <ArrowUp className="size-3" />
-              ) : (
-                <ArrowDown className="size-3" />
-              )}
-              {Math.abs(trend.value)}%
-            </Badge>
-          )}
-          {description && (
-            <p className="text-xs text-muted-foreground">{description}</p>
-          )}
+        <div className="mt-1 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            {trend && (
+              <Badge
+                variant={trend.isPositive ? "default" : "destructive"}
+                className={cn(
+                  "gap-0.5 text-xs",
+                  trend.isPositive
+                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                )}
+              >
+                {trend.isPositive ? (
+                  <ArrowUp className="size-3" />
+                ) : (
+                  <ArrowDown className="size-3" />
+                )}
+                {Math.abs(trend.value)}%
+              </Badge>
+            )}
+            {description && (
+              <p className="text-xs text-muted-foreground">{description}</p>
+            )}
+          </div>
+          {action ? <div className="shrink-0">{action}</div> : null}
         </div>
       </CardContent>
     </Card>

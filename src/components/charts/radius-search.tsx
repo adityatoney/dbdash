@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Search, MapPin, Users, UserCheck, UserPlus } from "lucide-react";
+import { Search, MapPin, Users, UserCheck, UserPlus, Download } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -40,6 +40,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { CHART_COLORS } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
 
 interface RadiusResult {
   center: {
@@ -81,6 +82,7 @@ export function RadiusSearch() {
   const [radius, setRadius] = useState("50");
   const [result, setResult] = useState<RadiusResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = useCallback(async () => {
@@ -114,6 +116,46 @@ export function RadiusSearch() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleSearch();
   };
+
+  const handleExportMembers = useCallback(async () => {
+    const zip = zipInput.trim();
+    if (!zip || !result) return;
+
+    setExporting(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams({
+        zip,
+        radius,
+        format: "csv",
+      });
+      const res = await fetch(`/api/geography/radius?${params.toString()}`);
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to export member data");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const contentDisposition = res.headers.get("content-disposition");
+      const fileNameMatch = contentDisposition?.match(/filename="?([^"]+)"?/i);
+      const fileName = fileNameMatch?.[1] ?? `radius-members-${zip}-${radius}mi.csv`;
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to export member data");
+    } finally {
+      setExporting(false);
+    }
+  }, [radius, result, zipInput]);
 
   // Chart data: top 10 cities as stacked bar
   const chartData =
@@ -223,6 +265,17 @@ export function RadiusSearch() {
               value={result.totalMembers.toLocaleString()}
               icon={Users}
               description="Attended at least 1 event"
+              action={
+                <Button
+                  variant="outline"
+                  size="xs"
+                  onClick={handleExportMembers}
+                  disabled={exporting || result.totalMembers === 0}
+                >
+                  <Download className="size-3.5" />
+                  {exporting ? "Exporting…" : "Download"}
+                </Button>
+              }
             />
             <KpiCard
               title="Returning Members"

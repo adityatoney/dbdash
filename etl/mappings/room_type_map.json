@@ -1,0 +1,89 @@
+{
+  "Double Queen": [
+    "Two Queen Beds",
+    "2 Queen Beds",
+    "Two Queens",
+    "Queen",
+    "Queen Bed",
+    "Two Queen Beds - 4 occupancies",
+    "2 Queen Beds Executive Floor - Staff",
+    "2 Queen Beds - Comp",
+    "2 Queen Beds - Staff"
+  ],
+  "King": [
+    "1 King Bed",
+    "Single King Bed",
+    "King Bed",
+    "One King Bed",
+    "Standard King",
+    "Traditional Room 1 King",
+    "Deluxe Room 1 King",
+    "Atrium 1 King Bed",
+    "Deluxe Guest Room One King Bed",
+    "Non-Smoking 1 King Bed",
+    "King Room",
+    "1 King Bed - Comp",
+    "1 King Bed Executive Floor - Staff",
+    "Atrium Corner 1 King Bed",
+    "1 King bed",
+    "Tower 1 King Bed"
+  ],
+  "Double/Double Beds": [
+    "Two Double Beds",
+    "2 Double Beds",
+    "Standard Double",
+    "Deluxe Guest Room Two Double Beds",
+    "Two Doubles",
+    "Non-Smoking 2 Double Beds",
+    "Two Full Beds",
+    "Traditional Room 2 Doubles",
+    "Deluxe Room 2 Doubles",
+    "2 Double beds",
+    "2 beds",
+    "Atrium 2 Beds",
+    "Tower Standard 2 Beds",
+    "Atrium Corner 2 Beds"
+  ],
+  "Suite": [
+    "Executive Suite",
+    "Deluxe Suite",
+    "Junior Suite - 2 Bedrooms",
+    "Executive Suite - 1 Bedroom",
+    "VIP Suite A - 2 Bedrooms",
+    "Presidential Suite",
+    "Golden Aster Suite",
+    "VIP Suite B - 2 Bedrooms - Two Bedroom St. John's Suite",
+    "Marquis Suite",
+    "Luxury Suite"
+  ],
+  "King + Sofa": [
+    "King + Sofa Bed",
+    "Tower King Bed with Sleeper Sofa",
+    "1 King Bed with sofa bed"
+  ],
+  "Double + Sofa": [
+    "2 Double Beds with sofa bed"
+  ],
+  "Studio": [
+    "One King Bed - Studio",
+    "Two Queen Beds - Studio"
+  ],
+  "Accessible": [
+    "2 Double Beds Accessible with Bathtub",
+    "Single King Bed - ADA with Tub",
+    "Two Queen Beds - ADA with Tub",
+    "2 Double Beds Accessible with Roll-in Shower",
+    "2 Double Accessible with Bathtub",
+    "Two Queen Beds - ADA with Shower",
+    "1 King Accessible with Roll-in Shower",
+    "1 King Bed Accessible with Bathtub",
+    "Single King Bed - ADA with Shower"
+  ],
+  "Parlor": [
+    "Standard Parlor Room",
+    "Deluxe Parlor with Wall Bed - 1 Bedroom Suite",
+    "Deluxe Parlor with Wall Bed - Comp",
+    "Deluxe Parlor Room"
+  ],
+  "Unknown": []
+}

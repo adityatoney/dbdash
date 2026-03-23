@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Member {
+  memberId       Int      @id @map("member_id")
+  familyId       Int      @map("family_id")
+  mahatmaId      BigInt?  @map("mahatma_id")
+  firstName      String   @map("first_name")
+  middleName     String?  @map("middle_name")
+  lastName       String   @map("last_name")
+  gender         String?  @db.Char(1)
+  birthMonth     Int?     @map("birth_month")
+  birthYear      Int?     @map("birth_year")
+  phonePrimary   String?  @map("phone_primary")
+  phoneSecondary String?  @map("phone_secondary")
+  email          String?
+  photoFilename  String?  @map("photo_filename")
+  inMms          Boolean  @default(false) @map("in_mms")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  family      Family             @relation(fields: [familyId], references: [familyId])
+  attendances EventAttendance[]
+  bookings    RoomBooking[]
+  gnanRecords GnanRecord[]
+  addresses   MemberAddress[]
+
+  @@index([familyId])
+  @@map("members")
+}
+
+model Family {
+  familyId    Int      @id @map("family_id")
+  memberCount Int      @default(0) @map("member_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  members  Member[]
+  bookings RoomBooking[]
+
+  @@map("families")
+}
+
+model Event {
+  eventId           Int       @id @map("event_id")
+  eventName         String    @map("event_name")
+  eventTypeId       Int       @map("event_type_id")
+  zoneId            Int?      @map("zone_id")
+  startDate         DateTime? @map("start_date")
+  endDate           DateTime? @map("end_date")
+  isGpEvent         Boolean   @default(false) @map("is_gp_event")
+  isVirtual         Boolean   @default(false) @map("is_virtual")
+  hasGnanvidhi      Boolean   @default(false) @map("has_gnanvidhi")
+  targetDemographic String?   @map("target_demographic")
+  year              Int
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  eventType   EventType           @relation(fields: [eventTypeId], references: [eventTypeId])
+  zone        Zone?               @relation(fields: [zoneId], references: [zoneId])
+  attendances EventAttendance[]
+  bookings    RoomBooking[]
+  gnanRecords GnanRecord[]
+  inventory   HotelRoomInventory[]
+
+  @@index([year])
+  @@index([eventTypeId])
+  @@map("events")
+}
+
+model EventType {
+  eventTypeId Int     @id @default(autoincrement()) @map("event_type_id")
+  typeName    String  @unique @map("type_name")
+  description String?
+
+  events Event[]
+
+  @@map("event_types")
+}
+
+model Zone {
+  zoneId         Int    @id @default(autoincrement()) @map("zone_id")
+  zoneName       String @unique @map("zone_name")
+  statesIncluded String @map("states_included")
+
+  events Event[]
+
+  @@map("zones")
+}
+
+model Hotel {
+  hotelId   Int      @id @default(autoincrement()) @map("hotel_id")
+  hotelName String   @unique @map("hotel_name")
+  city      String?
+  state     String?
+  country   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  bookings  RoomBooking[]
+  inventory HotelRoomInventory[]
+
+  @@map("hotels")
+}
+
+model RoomType {
+  roomTypeId    Int     @id @default(autoincrement()) @map("room_type_id")
+  canonicalName String  @unique @map("canonical_name")
+  description   String?
+
+  aliases   RoomTypeAlias[]
+  bookings  RoomBooking[]
+  inventory HotelRoomInventory[]
+
+  @@map("room_types")
+}
+
+model RoomTypeAlias {
+  aliasId    Int    @id @default(autoincrement()) @map("alias_id")
+  roomTypeId Int    @map("room_type_id")
+  rawName    String @unique @map("raw_name")
+
+  roomType RoomType @relation(fields: [roomTypeId], references: [roomTypeId])
+
+  @@map("room_type_aliases")
+}
+
+model EventAttendance {
+  attendanceId     Int       @id @default(autoincrement()) @map("attendance_id")
+  memberId         Int       @map("member_id")
+  eventId          Int       @map("event_id")
+  registered       Boolean   @default(false)
+  checkedIn        Boolean   @default(false) @map("checked_in")
+  checkedInTimeUtc DateTime? @map("checked_in_time_utc")
+  ageAtEvent       Int?      @map("age_at_event")
+  gnanTaken        Boolean   @default(false) @map("gnan_taken")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [memberId])
+  event  Event  @relation(fields: [eventId], references: [eventId])
+
+  @@unique([memberId, eventId])
+  @@index([memberId])
+  @@index([eventId])
+  @@map("event_attendance")
+}
+
+model RoomBooking {
+  bookingId      Int       @id @default(autoincrement()) @map("booking_id")
+  memberId       Int       @map("member_id")
+  eventId        Int       @map("event_id")
+  hotelId        Int?      @map("hotel_id")
+  roomTypeId     Int?      @map("room_type_id")
+  familyId       Int       @map("family_id")
+  roomBooked     Boolean   @default(false) @map("room_booked")
+  stayedInRoom   Boolean   @default(false) @map("stayed_in_room")
+  occupants      Int       @default(0)
+  roomsPerFamily Int       @default(0) @map("rooms_per_family")
+  checkInDate    DateTime? @map("check_in_date")
+  checkOutDate   DateTime? @map("check_out_date")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  member   Member    @relation(fields: [memberId], references: [memberId])
+  event    Event     @relation(fields: [eventId], references: [eventId])
+  hotel    Hotel?    @relation(fields: [hotelId], references: [hotelId])
+  roomType RoomType? @relation(fields: [roomTypeId], references: [roomTypeId])
+  family   Family    @relation(fields: [familyId], references: [familyId])
+
+  @@index([eventId])
+  @@index([hotelId])
+  @@map("room_bookings")
+}
+
+model GnanRecord {
+  gnanId    Int       @id @default(autoincrement()) @map("gnan_id")
+  memberId  Int       @map("member_id")
+  mahatmaId BigInt?   @map("mahatma_id")
+  gnanDate  DateTime? @map("gnan_date")
+  eventId   Int?      @map("event_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [memberId])
+  event  Event? @relation(fields: [eventId], references: [eventId])
+
+  @@index([gnanDate])
+  @@map("gnan_records")
+}
+
+model MemberAddress {
+  addressId    Int       @id @default(autoincrement()) @map("address_id")
+  memberId     Int       @map("member_id")
+  addressLine1 String?   @map("address_line1")
+  addressLine2 String?   @map("address_line2")
+  city         String?
+  state        String?
+  zipcode      String?
+  country      String?
+  validFrom    DateTime  @default(now()) @map("valid_from")
+  validTo      DateTime? @map("valid_to")
+  isCurrent    Boolean   @default(true) @map("is_current")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [memberId])
+
+  @@index([memberId, isCurrent])
+  @@map("member_addresses")
+}
+
+model HotelRoomInventory {
+  inventoryId   Int      @id @default(autoincrement()) @map("inventory_id")
+  hotelId       Int      @map("hotel_id")
+  roomTypeId    Int      @map("room_type_id")
+  eventId       Int      @map("event_id")
+  inventoryDate DateTime @map("inventory_date")
+  roomsReserved Int      @default(0) @map("rooms_reserved")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  hotel    Hotel    @relation(fields: [hotelId], references: [hotelId])
+  roomType RoomType @relation(fields: [roomTypeId], references: [roomTypeId])
+  event    Event    @relation(fields: [eventId], references: [eventId])
+
+  @@map("hotel_room_inventory")
+}
+
+model DataQualityLog {
+  logId         Int      @id @default(autoincrement()) @map("log_id")
+  sourceSheet   String?  @map("source_sheet")
+  sourceRow     Int?     @map("source_row")
+  columnName    String?  @map("column_name")
+  issueType     String?  @map("issue_type")
+  originalValue String?  @map("original_value")
+  imputedValue  String?  @map("imputed_value")
+  resolution    String?
+  loggedAt      DateTime @default(now()) @map("logged_at")
+
+  @@map("data_quality_log")
+}

@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dbdash}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dbdash_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-dbdash}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dbdash} -d ${POSTGRES_DB:-dbdash}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  etl:
+    build:
+      context: ./etl
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dbdash}:${POSTGRES_PASSWORD:-dbdash_dev}@db:5432/${POSTGRES_DB:-dbdash}
+    volumes:
+      - ./docs/event_docs:/data:ro
+    restart: "no"
+    profiles:
+      - etl
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dbdash}:${POSTGRES_PASSWORD:-dbdash_dev}@db:5432/${POSTGRES_DB:-dbdash}
+    restart: unless-stopped
+
+volumes:
+  pgdata:

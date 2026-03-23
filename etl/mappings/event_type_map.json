@@ -1,0 +1,45 @@
+{
+  "Gurupurnima": [
+    "\\bGuru\\s*Purnima\\b",
+    "\\bGurupurnima\\b",
+    "\\bGP\\b"
+  ],
+  "Satsang": [
+    "\\bSatsang\\b",
+    "\\bSat\\s*Sang\\b",
+    "\\bMahaSatsang\\b",
+    "\\bMaha\\s*Satsang\\b"
+  ],
+  "Retreat": [
+    "\\bRetreat\\b"
+  ],
+  "Youth Camp": [
+    "\\bYouth\\s*Camp\\b",
+    "\\bYuva\\s*Camp\\b",
+    "\\bCamp\\b"
+  ],
+  "Shibir": [
+    "\\bShibir\\b",
+    "\\bShivir\\b"
+  ],
+  "Learning": [
+    "\\bLearning\\b",
+    "\\bWorkshop\\b",
+    "\\bSeminar\\b",
+    "\\bTraining\\b",
+    "\\bClass\\b"
+  ],
+  "Cruise": [
+    "\\bCruise\\b"
+  ],
+  "Virtual": [
+    "\\bVirtual\\b",
+    "\\bOnline\\b",
+    "\\bZoom\\b",
+    "\\bWebinar\\b",
+    "\\bLivestream\\b",
+    "\\bLive\\s*Stream\\b",
+    "\\bE-Satsang\\b",
+    "\\beSatsang\\b"
+  ]
+}

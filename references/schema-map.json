@@ -1,0 +1,1219 @@
+{
+  "generatedAt": "2026-03-29T01:36:29.028Z",
+  "prismaChecksum": "8a6b507b6ff9506c91965bad31b395067b66166667ad8f04dc347adab451d129",
+  "tables": [
+    {
+      "model": "Member",
+      "table": "members",
+      "description": "Core member records with demographics, contact info, MMS status, and birth details",
+      "columns": [
+        {
+          "field": "memberId",
+          "column": "member_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "familyId",
+          "column": "family_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "mahatmaId",
+          "column": "mahatma_id",
+          "type": "BigInt",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "firstName",
+          "column": "first_name",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "middleName",
+          "column": "middle_name",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "lastName",
+          "column": "last_name",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "gender",
+          "column": "gender",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "birthMonth",
+          "column": "birth_month",
+          "type": "Int",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "birthYear",
+          "column": "birth_year",
+          "type": "Int",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "phonePrimary",
+          "column": "phone_primary",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "phoneSecondary",
+          "column": "phone_secondary",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "email",
+          "column": "email",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "photoFilename",
+          "column": "photo_filename",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "inMms",
+          "column": "in_mms",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "updatedAt",
+          "column": "updated_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "family",
+          "model": "Family",
+          "fk": "family_id",
+          "references": "familyId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "attendances",
+          "model": "EventAttendance",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "bookings",
+          "model": "RoomBooking",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "gnanRecords",
+          "model": "GnanRecord",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "addresses",
+          "model": "MemberAddress",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        }
+      ],
+      "indexes": [
+        [
+          "family_id"
+        ]
+      ]
+    },
+    {
+      "model": "Family",
+      "table": "families",
+      "description": "Family groupings with member count tracking",
+      "columns": [
+        {
+          "field": "familyId",
+          "column": "family_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "memberCount",
+          "column": "member_count",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "members",
+          "model": "Member",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "bookings",
+          "model": "RoomBooking",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "model": "Event",
+      "table": "events",
+      "description": "Events with type, zone, date range, GP/virtual flags, Gnanvidhi, demographics, and year",
+      "columns": [
+        {
+          "field": "eventId",
+          "column": "event_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "eventName",
+          "column": "event_name",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "eventTypeId",
+          "column": "event_type_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "zoneId",
+          "column": "zone_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "startDate",
+          "column": "start_date",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "endDate",
+          "column": "end_date",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "isGpEvent",
+          "column": "is_gp_event",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "isVirtual",
+          "column": "is_virtual",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "hasGnanvidhi",
+          "column": "has_gnanvidhi",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "targetDemographic",
+          "column": "target_demographic",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "year",
+          "column": "year",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "eventType",
+          "model": "EventType",
+          "fk": "event_type_id",
+          "references": "eventTypeId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "zone",
+          "model": "Zone",
+          "fk": "zone_id",
+          "references": "zoneId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "attendances",
+          "model": "EventAttendance",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "bookings",
+          "model": "RoomBooking",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "gnanRecords",
+          "model": "GnanRecord",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "inventory",
+          "model": "HotelRoomInventory",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        }
+      ],
+      "indexes": [
+        [
+          "year"
+        ],
+        [
+          "event_type_id"
+        ]
+      ]
+    },
+    {
+      "model": "EventType",
+      "table": "event_types",
+      "description": "Event categories such as GP, Retreat, Shibir, etc.",
+      "columns": [
+        {
+          "field": "eventTypeId",
+          "column": "event_type_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "typeName",
+          "column": "type_name",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "description",
+          "column": "description",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        }
+      ],
+      "relations": [
+        {
+          "field": "events",
+          "model": "Event",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "model": "Zone",
+      "table": "zones",
+      "description": "Geographic zones with associated US state abbreviations",
+      "columns": [
+        {
+          "field": "zoneId",
+          "column": "zone_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "zoneName",
+          "column": "zone_name",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "statesIncluded",
+          "column": "states_included",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "events",
+          "model": "Event",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "model": "Hotel",
+      "table": "hotels",
+      "description": "Accommodation venues with city, state, and country",
+      "columns": [
+        {
+          "field": "hotelId",
+          "column": "hotel_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "hotelName",
+          "column": "hotel_name",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "city",
+          "column": "city",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "state",
+          "column": "state",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "country",
+          "column": "country",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "bookings",
+          "model": "RoomBooking",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "inventory",
+          "model": "HotelRoomInventory",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "model": "RoomType",
+      "table": "room_types",
+      "description": "Canonical room categories with descriptions",
+      "columns": [
+        {
+          "field": "roomTypeId",
+          "column": "room_type_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "canonicalName",
+          "column": "canonical_name",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "description",
+          "column": "description",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        }
+      ],
+      "relations": [
+        {
+          "field": "aliases",
+          "model": "RoomTypeAlias",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "bookings",
+          "model": "RoomBooking",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        },
+        {
+          "field": "inventory",
+          "model": "HotelRoomInventory",
+          "fk": "",
+          "references": "",
+          "type": "hasMany"
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "model": "RoomTypeAlias",
+      "table": "room_type_aliases",
+      "description": "Alias mappings from raw room names to canonical room types",
+      "columns": [
+        {
+          "field": "aliasId",
+          "column": "alias_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "roomTypeId",
+          "column": "room_type_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "rawName",
+          "column": "raw_name",
+          "type": "String",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "roomType",
+          "model": "RoomType",
+          "fk": "room_type_id",
+          "references": "roomTypeId",
+          "type": "belongsTo"
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "model": "EventAttendance",
+      "table": "event_attendance",
+      "description": "Junction table linking members to events with registration, check-in, age, and gnan tracking",
+      "columns": [
+        {
+          "field": "attendanceId",
+          "column": "attendance_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "memberId",
+          "column": "member_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "eventId",
+          "column": "event_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "registered",
+          "column": "registered",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "checkedIn",
+          "column": "checked_in",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "checkedInTimeUtc",
+          "column": "checked_in_time_utc",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "ageAtEvent",
+          "column": "age_at_event",
+          "type": "Int",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "gnanTaken",
+          "column": "gnan_taken",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "member",
+          "model": "Member",
+          "fk": "member_id",
+          "references": "memberId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "event",
+          "model": "Event",
+          "fk": "event_id",
+          "references": "eventId",
+          "type": "belongsTo"
+        }
+      ],
+      "indexes": [
+        [
+          "member_id",
+          "event_id"
+        ],
+        [
+          "member_id"
+        ],
+        [
+          "event_id"
+        ]
+      ]
+    },
+    {
+      "model": "RoomBooking",
+      "table": "room_bookings",
+      "description": "Room bookings linking members, events, hotels, room types, and families with occupancy data",
+      "columns": [
+        {
+          "field": "bookingId",
+          "column": "booking_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "memberId",
+          "column": "member_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "eventId",
+          "column": "event_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "hotelId",
+          "column": "hotel_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "roomTypeId",
+          "column": "room_type_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "familyId",
+          "column": "family_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "roomBooked",
+          "column": "room_booked",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "stayedInRoom",
+          "column": "stayed_in_room",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "occupants",
+          "column": "occupants",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "roomsPerFamily",
+          "column": "rooms_per_family",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "checkInDate",
+          "column": "check_in_date",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "checkOutDate",
+          "column": "check_out_date",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "member",
+          "model": "Member",
+          "fk": "member_id",
+          "references": "memberId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "event",
+          "model": "Event",
+          "fk": "event_id",
+          "references": "eventId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "hotel",
+          "model": "Hotel",
+          "fk": "hotel_id",
+          "references": "hotelId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "roomType",
+          "model": "RoomType",
+          "fk": "room_type_id",
+          "references": "roomTypeId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "family",
+          "model": "Family",
+          "fk": "family_id",
+          "references": "familyId",
+          "type": "belongsTo"
+        }
+      ],
+      "indexes": [
+        [
+          "event_id"
+        ],
+        [
+          "hotel_id"
+        ]
+      ]
+    },
+    {
+      "model": "GnanRecord",
+      "table": "gnan_records",
+      "description": "Gnan ceremony records with member, date, and event linkage",
+      "columns": [
+        {
+          "field": "gnanId",
+          "column": "gnan_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "memberId",
+          "column": "member_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "mahatmaId",
+          "column": "mahatma_id",
+          "type": "BigInt",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "gnanDate",
+          "column": "gnan_date",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "eventId",
+          "column": "event_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "member",
+          "model": "Member",
+          "fk": "member_id",
+          "references": "memberId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "event",
+          "model": "Event",
+          "fk": "event_id",
+          "references": "eventId",
+          "type": "belongsTo"
+        }
+      ],
+      "indexes": [
+        [
+          "gnan_date"
+        ]
+      ]
+    },
+    {
+      "model": "MemberAddress",
+      "table": "member_addresses",
+      "description": "Versioned member addresses with validity dates and current-address flag",
+      "columns": [
+        {
+          "field": "addressId",
+          "column": "address_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "memberId",
+          "column": "member_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "addressLine1",
+          "column": "address_line1",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "addressLine2",
+          "column": "address_line2",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "city",
+          "column": "city",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "state",
+          "column": "state",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "zipcode",
+          "column": "zipcode",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "country",
+          "column": "country",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "validFrom",
+          "column": "valid_from",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "validTo",
+          "column": "valid_to",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "isCurrent",
+          "column": "is_current",
+          "type": "Boolean",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "member",
+          "model": "Member",
+          "fk": "member_id",
+          "references": "memberId",
+          "type": "belongsTo"
+        }
+      ],
+      "indexes": [
+        [
+          "member_id",
+          "is_current"
+        ]
+      ]
+    },
+    {
+      "model": "HotelRoomInventory",
+      "table": "hotel_room_inventory",
+      "description": "Room availability tracking per hotel, room type, event, and date",
+      "columns": [
+        {
+          "field": "inventoryId",
+          "column": "inventory_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "hotelId",
+          "column": "hotel_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "roomTypeId",
+          "column": "room_type_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "eventId",
+          "column": "event_id",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "inventoryDate",
+          "column": "inventory_date",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "roomsReserved",
+          "column": "rooms_reserved",
+          "type": "Int",
+          "pk": false,
+          "nullable": false
+        },
+        {
+          "field": "createdAt",
+          "column": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [
+        {
+          "field": "hotel",
+          "model": "Hotel",
+          "fk": "hotel_id",
+          "references": "hotelId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "roomType",
+          "model": "RoomType",
+          "fk": "room_type_id",
+          "references": "roomTypeId",
+          "type": "belongsTo"
+        },
+        {
+          "field": "event",
+          "model": "Event",
+          "fk": "event_id",
+          "references": "eventId",
+          "type": "belongsTo"
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "model": "DataQualityLog",
+      "table": "data_quality_log",
+      "description": "ETL audit trail tracking data issues, imputations, and resolutions",
+      "columns": [
+        {
+          "field": "logId",
+          "column": "log_id",
+          "type": "Int",
+          "pk": true,
+          "nullable": false
+        },
+        {
+          "field": "sourceSheet",
+          "column": "source_sheet",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "sourceRow",
+          "column": "source_row",
+          "type": "Int",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "columnName",
+          "column": "column_name",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "issueType",
+          "column": "issue_type",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "originalValue",
+          "column": "original_value",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "imputedValue",
+          "column": "imputed_value",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "resolution",
+          "column": "resolution",
+          "type": "String",
+          "pk": false,
+          "nullable": true
+        },
+        {
+          "field": "loggedAt",
+          "column": "logged_at",
+          "type": "DateTime",
+          "pk": false,
+          "nullable": false
+        }
+      ],
+      "relations": [],
+      "indexes": []
+    }
+  ],
+  "relationshipGraph": {
+    "members": [
+      "event_attendance",
+      "families",
+      "gnan_records",
+      "member_addresses",
+      "room_bookings"
+    ],
+    "families": [
+      "members",
+      "room_bookings"
+    ],
+    "event_attendance": [
+      "events",
+      "members"
+    ],
+    "room_bookings": [
+      "events",
+      "families",
+      "hotels",
+      "members",
+      "room_types"
+    ],
+    "gnan_records": [
+      "events",
+      "members"
+    ],
+    "member_addresses": [
+      "members"
+    ],
+    "events": [
+      "event_attendance",
+      "event_types",
+      "gnan_records",
+      "hotel_room_inventory",
+      "room_bookings",
+      "zones"
+    ],
+    "event_types": [
+      "events"
+    ],
+    "zones": [
+      "events"
+    ],
+    "hotel_room_inventory": [
+      "events",
+      "hotels",
+      "room_types"
+    ],
+    "hotels": [
+      "hotel_room_inventory",
+      "room_bookings"
+    ],
+    "room_types": [
+      "hotel_room_inventory",
+      "room_bookings",
+      "room_type_aliases"
+    ],
+    "room_type_aliases": [
+      "room_types"
+    ],
+    "data_quality_log": []
+  }
+}

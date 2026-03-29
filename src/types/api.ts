@@ -99,3 +99,11 @@ export interface DataQualityLogEntry {
   resolution: string;
   loggedAt: string;
 }
+
+export interface NLQueryResult {
+  sql: string;
+  rows: Record<string, unknown>[];
+  rowCount: number;
+  durationMs: number;
+  source: "golden" | "cache" | "llm";
+}

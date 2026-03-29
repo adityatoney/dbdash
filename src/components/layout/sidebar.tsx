@@ -11,6 +11,7 @@ import {
   Building2,
   AlertTriangle,
   Upload,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ const navItems = [
   { label: "Accommodation", href: "/dashboard/accommodation", icon: Building2 },
   { label: "Data Quality", href: "/dashboard/data-quality", icon: AlertTriangle },
   { label: "Upload", href: "/dashboard/upload", icon: Upload },
+  { label: "NL Query", href: "/dashboard/nl-query", icon: MessageSquare },
 ] as const;
 
 interface SidebarProps {

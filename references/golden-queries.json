@@ -1,0 +1,125 @@
+[
+  {
+    "patterns": [
+      "How many members attended GP events each year?",
+      "members attended GP events by year",
+      "GP event attendance per year",
+      "yearly GP attendance count",
+      "members attending GP events yearly",
+      "GP members per year",
+      "members who went to GP events by year"
+    ],
+    "sql": "SELECT\n  e.year,\n  COUNT(DISTINCT ea.member_id)::int AS members_attended\nFROM event_attendance ea\nJOIN events e ON ea.event_id = e.event_id\nWHERE e.is_gp_event = true\n  AND ea.checked_in = true\nGROUP BY e.year\nORDER BY e.year",
+    "description": "Count of distinct members who checked in to GP events, grouped by year"
+  },
+  {
+    "patterns": [
+      "Top 10 hotels by total bookings across all events",
+      "hotels with most bookings",
+      "top hotels by booking count",
+      "busiest hotels",
+      "top hotels by bookings",
+      "hotels ranked by bookings"
+    ],
+    "sql": "SELECT\n  h.hotel_name,\n  COUNT(*)::int AS total_bookings\nFROM room_bookings rb\nJOIN hotels h ON rb.hotel_id = h.hotel_id\nWHERE rb.room_booked = true\nGROUP BY h.hotel_id, h.hotel_name\nORDER BY total_bookings DESC\nLIMIT 10",
+    "description": "Top 10 hotels ranked by total room bookings"
+  },
+  {
+    "patterns": [
+      "Show the gender split for each zone",
+      "gender breakdown by zone",
+      "male female count per zone",
+      "gender distribution across zones"
+    ],
+    "sql": "SELECT\n  z.zone_name,\n  m.gender,\n  COUNT(DISTINCT m.member_id)::int AS member_count\nFROM members m\nJOIN event_attendance ea ON m.member_id = ea.member_id\nJOIN events e ON ea.event_id = e.event_id\nJOIN zones z ON e.zone_id = z.zone_id\nWHERE m.gender IS NOT NULL\nGROUP BY z.zone_name, m.gender\nORDER BY z.zone_name, m.gender",
+    "description": "Member count by gender for each zone"
+  },
+  {
+    "patterns": [
+      "Which members attended every GP event?",
+      "members who attended all GP events",
+      "members at every GP event",
+      "perfect GP attendance"
+    ],
+    "sql": "WITH gp_events AS (\n  SELECT event_id\n  FROM events\n  WHERE is_gp_event = true\n),\ngp_count AS (\n  SELECT COUNT(*)::int AS total\n  FROM gp_events\n)\nSELECT\n  m.member_id,\n  m.first_name,\n  m.last_name,\n  COUNT(DISTINCT ea.event_id)::int AS events_attended\nFROM members m\nJOIN event_attendance ea ON m.member_id = ea.member_id\nJOIN gp_events ge ON ea.event_id = ge.event_id\nWHERE ea.checked_in = true\nGROUP BY m.member_id, m.first_name, m.last_name\nHAVING COUNT(DISTINCT ea.event_id) = (SELECT total FROM gp_count)\nORDER BY m.last_name, m.first_name\nLIMIT 200",
+    "description": "Members who checked in to every GP event"
+  },
+  {
+    "patterns": [
+      "Average family size by zone",
+      "family size per zone",
+      "mean family members by zone"
+    ],
+    "sql": "WITH zone_families AS (\n  SELECT DISTINCT\n    z.zone_name,\n    m.family_id,\n    f.member_count\n  FROM members m\n  JOIN event_attendance ea ON m.member_id = ea.member_id\n  JOIN events e ON ea.event_id = e.event_id\n  JOIN zones z ON e.zone_id = z.zone_id\n  JOIN families f ON m.family_id = f.family_id\n)\nSELECT\n  zone_name,\n  ROUND(AVG(member_count), 2) AS avg_family_size,\n  COUNT(DISTINCT family_id)::int AS families\nFROM zone_families\nGROUP BY zone_name\nORDER BY avg_family_size DESC",
+    "description": "Average family member count by zone"
+  },
+  {
+    "patterns": [
+      "Monthly gnan record count for 2024",
+      "gnan records by month 2024",
+      "gnan ceremonies per month in 2024",
+      "2024 monthly gnan count"
+    ],
+    "sql": "SELECT\n  EXTRACT(MONTH FROM gnan_date)::int AS month,\n  COUNT(*)::int AS gnan_count\nFROM gnan_records\nWHERE EXTRACT(YEAR FROM gnan_date) = 2024\nGROUP BY EXTRACT(MONTH FROM gnan_date)\nORDER BY month",
+    "description": "Gnan records grouped by month for year 2024"
+  },
+  {
+    "patterns": [
+      "total members",
+      "how many members",
+      "member count",
+      "count of all members"
+    ],
+    "sql": "SELECT\n  COUNT(*)::int AS total_members\nFROM members",
+    "description": "Total count of all members"
+  },
+  {
+    "patterns": [
+      "total events",
+      "how many events",
+      "event count",
+      "count of all events"
+    ],
+    "sql": "SELECT\n  COUNT(*)::int AS total_events\nFROM events",
+    "description": "Total count of all events"
+  },
+  {
+    "patterns": [
+      "events by year",
+      "event count per year",
+      "how many events each year",
+      "yearly event count"
+    ],
+    "sql": "SELECT\n  year,\n  COUNT(*)::int AS event_count\nFROM events\nGROUP BY year\nORDER BY year",
+    "description": "Number of events per year"
+  },
+  {
+    "patterns": [
+      "events by type",
+      "event count by type",
+      "how many of each event type",
+      "event type breakdown"
+    ],
+    "sql": "SELECT\n  et.type_name,\n  COUNT(*)::int AS event_count\nFROM events e\nJOIN event_types et ON e.event_type_id = et.event_type_id\nGROUP BY et.type_name\nORDER BY event_count DESC",
+    "description": "Event count grouped by event type"
+  },
+  {
+    "patterns": [
+      "members by state",
+      "member count per state",
+      "how many members in each state",
+      "members per state"
+    ],
+    "sql": "SELECT\n  ma.state,\n  COUNT(DISTINCT ma.member_id)::int AS member_count\nFROM member_addresses ma\nWHERE ma.is_current = true\n  AND ma.state IS NOT NULL\nGROUP BY ma.state\nORDER BY member_count DESC\nLIMIT 200",
+    "description": "Member count by current address state"
+  },
+  {
+    "patterns": [
+      "room utilization",
+      "room booking utilization rate",
+      "hotel room utilization"
+    ],
+    "sql": "SELECT\n  h.hotel_name,\n  rt.canonical_name AS room_type,\n  COUNT(CASE WHEN rb.stayed_in_room THEN 1 END)::int AS stayed,\n  COUNT(CASE WHEN rb.room_booked THEN 1 END)::int AS booked,\n  CASE\n    WHEN COUNT(CASE WHEN rb.room_booked THEN 1 END) > 0\n    THEN ROUND(\n      100.0 * COUNT(CASE WHEN rb.stayed_in_room THEN 1 END)\n      / COUNT(CASE WHEN rb.room_booked THEN 1 END), 1\n    )\n    ELSE 0\n  END AS utilization_pct\nFROM room_bookings rb\nJOIN hotels h ON rb.hotel_id = h.hotel_id\nJOIN room_types rt ON rb.room_type_id = rt.room_type_id\nGROUP BY h.hotel_name, rt.canonical_name\nORDER BY h.hotel_name, rt.canonical_name",
+    "description": "Room utilization percentage by hotel and room type"
+  }
+]

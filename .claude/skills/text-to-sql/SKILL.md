@@ -135,3 +135,24 @@ These rules reflect how the organization uses terminology:
 - **Event with zone**: `events` JOIN `zones` ON `zone_id`
 - **Member addresses**: `members` JOIN `member_addresses` ON `member_id` (filter `is_current = true` for latest)
 - **Gnan by event**: `gnan_records` JOIN `events` ON `event_id`
+
+---
+
+## Auto-Learning
+
+The web UI pipeline (`src/lib/nl-to-sql.ts`) automatically learns from LLM-generated queries:
+
+1. When a question has no golden match, the LLM generates SQL.
+2. After successful execution, the question+SQL pair is appended to `references/golden-queries.json` via `scripts/query_matcher.py learn`.
+3. Future similar questions are matched via NLTK (lemmatized TF-IDF cosine similarity, threshold >= 0.85) without needing the LLM.
+4. Auto-learned entries have `"source": "learned"` in the JSON for easy identification and periodic pruning.
+
+### NLTK Matcher
+
+The matcher at `scripts/query_matcher.py` preprocesses queries using:
+- **Tokenization**: `nltk.word_tokenize`
+- **Stopword removal**: NLTK English stopwords corpus
+- **Lemmatization**: `WordNetLemmatizer` with POS-tag-aware lemma selection
+- **Similarity**: TF-IDF cosine similarity on lemmatized token sets
+
+Run `npm run nltk:setup` to install dependencies and bootstrap NLTK data.

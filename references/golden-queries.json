@@ -19,7 +19,8 @@
       "top hotels by booking count",
       "busiest hotels",
       "top hotels by bookings",
-      "hotels ranked by bookings"
+      "hotels ranked by bookings",
+      "Show me the top hotels by bookings"
     ],
     "sql": "SELECT\n  h.hotel_name,\n  COUNT(*)::int AS total_bookings\nFROM room_bookings rb\nJOIN hotels h ON rb.hotel_id = h.hotel_id\nWHERE rb.room_booked = true\nGROUP BY h.hotel_id, h.hotel_name\nORDER BY total_bookings DESC\nLIMIT 10",
     "description": "Top 10 hotels ranked by total room bookings"
@@ -121,5 +122,13 @@
     ],
     "sql": "SELECT\n  h.hotel_name,\n  rt.canonical_name AS room_type,\n  COUNT(CASE WHEN rb.stayed_in_room THEN 1 END)::int AS stayed,\n  COUNT(CASE WHEN rb.room_booked THEN 1 END)::int AS booked,\n  CASE\n    WHEN COUNT(CASE WHEN rb.room_booked THEN 1 END) > 0\n    THEN ROUND(\n      100.0 * COUNT(CASE WHEN rb.stayed_in_room THEN 1 END)\n      / COUNT(CASE WHEN rb.room_booked THEN 1 END), 1\n    )\n    ELSE 0\n  END AS utilization_pct\nFROM room_bookings rb\nJOIN hotels h ON rb.hotel_id = h.hotel_id\nJOIN room_types rt ON rb.room_type_id = rt.room_type_id\nGROUP BY h.hotel_name, rt.canonical_name\nORDER BY h.hotel_name, rt.canonical_name",
     "description": "Room utilization percentage by hotel and room type"
+  },
+  {
+    "patterns": [
+      "Which zones had the most returned attendees?"
+    ],
+    "sql": "WITH member_event_counts AS (\n  SELECT ea.member_id, e.zone_id, COUNT(DISTINCT ea.event_id)::int AS events_attended\n  FROM event_attendance ea\n  JOIN events e ON ea.event_id = e.event_id\n  WHERE ea.checked_in = true AND e.zone_id IS NOT NULL\n  GROUP BY ea.member_id, e.zone_id\n),\nreturning_members AS (\n  SELECT zone_id, COUNT(DISTINCT member_id)::int AS returning_attendees\n  FROM member_event_counts\n  WHERE events_attended > 1\n  GROUP BY zone_id\n)\nSELECT z.zone_name, rm.returning_attendees\nFROM returning_members rm\nJOIN zones z ON rm.zone_id = z.zone_id\nORDER BY rm.returning_attendees DESC\nLIMIT 200",
+    "description": "Auto-learned query",
+    "source": "learned"
   }
 ]

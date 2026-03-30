@@ -44,3 +44,7 @@ pgdata/
 *.tsbuildinfo
 next-env.d.ts
 etl/.next/
+
+# NLTK query matcher artifacts
+references/golden-fingerprints.json
+scripts/.nltk_data/

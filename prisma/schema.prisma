@@ -239,3 +239,28 @@ model DataQualityLog {
 
   @@map("data_quality_log")
 }
+
+model GoldenQuery {
+  id          Int                  @id @default(autoincrement())
+  sql         String               @db.Text
+  description String               @default("")
+  source      String               @default("curated")
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  patterns    GoldenQueryPattern[]
+
+  @@map("golden_queries")
+}
+
+model GoldenQueryPattern {
+  id            Int          @id @default(autoincrement())
+  goldenQueryId Int          @map("golden_query_id")
+  pattern       String
+  fingerprint   String[]     @default([])
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  goldenQuery   GoldenQuery  @relation(fields: [goldenQueryId], references: [id], onDelete: Cascade)
+
+  @@index([goldenQueryId])
+  @@map("golden_query_patterns")
+}

@@ -4,28 +4,28 @@ NLTK-powered query matcher for the NL-to-SQL pipeline.
 
 Commands:
   match <question>         Match against golden queries (JSON to stdout)
-  learn <question> <sql>   Append a new question+SQL to golden-queries.json
-  build-fingerprints       Force-rebuild the fingerprint cache
+  learn <question> <sql>   Append a new question+SQL to the database
+  build-fingerprints       Recompute fingerprints for all patterns in the DB
 
 Uses lemmatized TF-IDF cosine similarity with a 0.85 confidence threshold.
+Golden queries and fingerprints are stored in Postgres (golden_queries and
+golden_query_patterns tables).
 """
 
 import sys
 import os
 import json
 import math
-import fcntl
 from pathlib import Path
-from datetime import datetime, timezone
 from collections import Counter
+
+import psycopg2
 
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
-GOLDEN_QUERIES_PATH = PROJECT_ROOT / "references" / "golden-queries.json"
-FINGERPRINTS_CACHE_PATH = PROJECT_ROOT / "references" / "golden-fingerprints.json"
 NLTK_DATA_DIR = str(SCRIPT_DIR / ".nltk_data")
 
 # ---------------------------------------------------------------------------
@@ -66,6 +66,28 @@ LEMMATIZER = WordNetLemmatizer()
 CONFIDENCE_THRESHOLD = 0.85
 
 # ---------------------------------------------------------------------------
+# Database connection
+# ---------------------------------------------------------------------------
+
+
+def get_conn():
+    """Connect to Postgres using DATABASE_URL from environment or .env file."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        env_path = PROJECT_ROOT / ".env"
+        if env_path.exists():
+            for line in env_path.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("DATABASE_URL="):
+                    url = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+    if not url:
+        print("ERROR: DATABASE_URL not set", file=sys.stderr)
+        sys.exit(1)
+    return psycopg2.connect(url)
+
+
+# ---------------------------------------------------------------------------
 # NLP helpers
 # ---------------------------------------------------------------------------
 
@@ -97,60 +119,32 @@ def fingerprint(text: str) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# Fingerprint cache management
+# Load fingerprints from Postgres
 # ---------------------------------------------------------------------------
 
 
-def _is_cache_stale() -> bool:
-    """Check if fingerprint cache needs rebuilding."""
-    if not FINGERPRINTS_CACHE_PATH.exists():
-        return True
-    if not GOLDEN_QUERIES_PATH.exists():
-        return True
-    return (
-        GOLDEN_QUERIES_PATH.stat().st_mtime
-        > FINGERPRINTS_CACHE_PATH.stat().st_mtime
-    )
-
-
-def _build_fingerprints() -> list[dict]:
-    """Build fingerprint entries from golden-queries.json."""
-    with open(GOLDEN_QUERIES_PATH, "r") as f:
-        golden = json.load(f)
-
-    entries = []
-    for idx, query in enumerate(golden):
-        sql = query["sql"]
-        desc = query.get("description", "")
-        for pattern in query.get("patterns", []):
-            fp = fingerprint(pattern)
-            entries.append(
-                {
-                    "index": idx,
-                    "pattern": pattern,
-                    "fingerprint": fp,
-                    "sql": sql,
-                    "description": desc,
-                }
-            )
-
-    cache = {
-        "built_at": datetime.now(timezone.utc).isoformat(),
-        "entries": entries,
-    }
-    with open(FINGERPRINTS_CACHE_PATH, "w") as f:
-        json.dump(cache, f, indent=2)
-        f.write("\n")
-
-    return entries
-
-
 def load_fingerprints() -> list[dict]:
-    """Load fingerprint entries, rebuilding cache if stale."""
-    if _is_cache_stale():
-        return _build_fingerprints()
-    with open(FINGERPRINTS_CACHE_PATH, "r") as f:
-        return json.load(f)["entries"]
+    """Load all pattern fingerprints from the database."""
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT gqp.id, gqp.pattern, gqp.fingerprint, gq.sql, gq.description
+                FROM golden_query_patterns gqp
+                JOIN golden_queries gq ON gq.id = gqp.golden_query_id
+            """)
+            return [
+                {
+                    "index": r[0],
+                    "pattern": r[1],
+                    "fingerprint": r[2],
+                    "sql": r[3],
+                    "description": r[4],
+                }
+                for r in cur.fetchall()
+            ]
+    finally:
+        conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -220,10 +214,6 @@ def compute_similarities(
 
 def cmd_match(question: str) -> None:
     """Match a question against golden queries. Output JSON to stdout."""
-    if not GOLDEN_QUERIES_PATH.exists():
-        json.dump({"matched": False, "confidence": 0.0, "best_pattern": ""}, sys.stdout)
-        return
-
     entries = load_fingerprints()
     if not entries:
         json.dump({"matched": False, "confidence": 0.0, "best_pattern": ""}, sys.stdout)
@@ -265,54 +255,90 @@ def cmd_match(question: str) -> None:
 
 
 def cmd_learn(question: str, sql: str) -> None:
-    """Append a question+SQL pair to golden-queries.json."""
-    if not GOLDEN_QUERIES_PATH.exists():
-        golden = []
-    else:
-        with open(GOLDEN_QUERIES_PATH, "r") as f:
-            golden = json.load(f)
+    """Append a question+SQL pair to the database."""
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            # Normalise SQL whitespace for comparison
+            norm_sql = " ".join(sql.split())
 
-    # Normalise SQL whitespace for comparison
-    norm_sql = " ".join(sql.split())
+            # Check if this SQL already exists
+            cur.execute(
+                """
+                SELECT id FROM golden_queries
+                WHERE regexp_replace(sql, '\\s+', ' ', 'g') = %s
+                LIMIT 1
+                """,
+                (norm_sql,),
+            )
+            row = cur.fetchone()
 
-    # Check if this SQL already exists in any entry
-    found = False
-    for entry in golden:
-        if " ".join(entry["sql"].split()) == norm_sql:
-            # Avoid duplicate patterns
-            if question not in entry["patterns"]:
-                entry["patterns"].append(question)
-            found = True
-            break
+            if row:
+                query_id = row[0]
+                # Avoid duplicate patterns
+                cur.execute(
+                    """
+                    SELECT 1 FROM golden_query_patterns
+                    WHERE golden_query_id = %s AND pattern = %s
+                    """,
+                    (query_id, question),
+                )
+                if not cur.fetchone():
+                    fp = fingerprint(question)
+                    cur.execute(
+                        """
+                        INSERT INTO golden_query_patterns (golden_query_id, pattern, fingerprint)
+                        VALUES (%s, %s, %s)
+                        """,
+                        (query_id, question, fp),
+                    )
+            else:
+                # Insert new golden query
+                cur.execute(
+                    """
+                    INSERT INTO golden_queries (sql, description, source)
+                    VALUES (%s, %s, %s)
+                    RETURNING id
+                    """,
+                    (sql, "Auto-learned query", "learned"),
+                )
+                query_id = cur.fetchone()[0]
 
-    if not found:
-        golden.append(
-            {
-                "patterns": [question],
-                "sql": sql,
-                "description": "Auto-learned query",
-                "source": "learned",
-            }
-        )
+                fp = fingerprint(question)
+                cur.execute(
+                    """
+                    INSERT INTO golden_query_patterns (golden_query_id, pattern, fingerprint)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (query_id, question, fp),
+                )
 
-    # Write with file locking to prevent races
-    with open(GOLDEN_QUERIES_PATH, "w") as f:
-        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-        try:
-            json.dump(golden, f, indent=2)
-            f.write("\n")
-        finally:
-            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-
-    # Invalidate fingerprint cache
-    if FINGERPRINTS_CACHE_PATH.exists():
-        FINGERPRINTS_CACHE_PATH.unlink()
+            conn.commit()
+    finally:
+        conn.close()
 
 
 def cmd_build_fingerprints() -> None:
-    """Force-rebuild the fingerprint cache."""
-    entries = _build_fingerprints()
-    print(f"Built {len(entries)} fingerprint entries.", file=sys.stderr)
+    """Recompute fingerprints for all patterns in the database."""
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, pattern FROM golden_query_patterns")
+            rows = cur.fetchall()
+
+            updated = 0
+            for pattern_id, pattern_text in rows:
+                fp = fingerprint(pattern_text)
+                cur.execute(
+                    "UPDATE golden_query_patterns SET fingerprint = %s WHERE id = %s",
+                    (fp, pattern_id),
+                )
+                updated += 1
+
+            conn.commit()
+            print(f"Updated fingerprints for {updated} patterns.", file=sys.stderr)
+    finally:
+        conn.close()
 
 
 # ---------------------------------------------------------------------------

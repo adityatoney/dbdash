@@ -130,5 +130,597 @@
     "sql": "WITH member_event_counts AS (\n  SELECT ea.member_id, e.zone_id, COUNT(DISTINCT ea.event_id)::int AS events_attended\n  FROM event_attendance ea\n  JOIN events e ON ea.event_id = e.event_id\n  WHERE ea.checked_in = true AND e.zone_id IS NOT NULL\n  GROUP BY ea.member_id, e.zone_id\n),\nreturning_members AS (\n  SELECT zone_id, COUNT(DISTINCT member_id)::int AS returning_attendees\n  FROM member_event_counts\n  WHERE events_attended > 1\n  GROUP BY zone_id\n)\nSELECT z.zone_name, rm.returning_attendees\nFROM returning_members rm\nJOIN zones z ON rm.zone_id = z.zone_id\nORDER BY rm.returning_attendees DESC\nLIMIT 200",
     "description": "Auto-learned query",
     "source": "learned"
+  },
+  {
+    "patterns": [
+      "How many members are in each city?",
+      "Member count by city",
+      "Which cities have the most members?",
+      "Top cities by number of members",
+      "Show me the member distribution across cities"
+    ],
+    "sql": "SELECT\n  ma.city,\n  COUNT(DISTINCT ma.member_id)::int AS member_count\nFROM member_addresses ma\nWHERE ma.is_current = true\n  AND ma.city IS NOT NULL\nGROUP BY ma.city\nORDER BY member_count DESC\nLIMIT 200",
+    "description": "Member count grouped by current city"
+  },
+  {
+    "patterns": [
+      "What are the top 10 largest families?",
+      "Show me the biggest families",
+      "Which families have the most members?",
+      "Largest families by member count"
+    ],
+    "sql": "SELECT\n  f.family_id,\n  f.member_count,\n  MIN(m.last_name) AS family_name\nFROM families f\nJOIN members m\n  ON f.family_id = m.family_id\nGROUP BY f.family_id, f.member_count\nORDER BY f.member_count DESC\nLIMIT 10",
+    "description": "Top 10 families with the highest member count"
+  },
+  {
+    "patterns": [
+      "How many members don't have an email address?",
+      "Members without email",
+      "Count of members missing email",
+      "How many members are we missing email for?"
+    ],
+    "sql": "SELECT\n  COUNT(*)::int AS members_without_email\nFROM members\nWHERE email IS NULL",
+    "description": "Count of members with no email address on file"
+  },
+  {
+    "patterns": [
+      "What is the gender breakdown of all members?",
+      "How many male and female members are there?",
+      "Gender distribution of members",
+      "Show me male vs female member counts"
+    ],
+    "sql": "SELECT\n  gender,\n  COUNT(*)::int AS member_count\nFROM members\nWHERE gender IS NOT NULL\nGROUP BY gender\nORDER BY member_count DESC",
+    "description": "Overall member count split by gender"
+  },
+  {
+    "patterns": [
+      "How are members distributed by birth decade?",
+      "Member count by birth year decade",
+      "Show me the age demographics of members",
+      "How many members were born in each decade?"
+    ],
+    "sql": "SELECT\n  (birth_year / 10 * 10)::int AS birth_decade,\n  COUNT(*)::int AS member_count\nFROM members\nWHERE birth_year IS NOT NULL\nGROUP BY birth_decade\nORDER BY birth_decade",
+    "description": "Member count grouped by birth year decade"
+  },
+  {
+    "patterns": [
+      "How many families have only one member?",
+      "Count of single-member families",
+      "How many families have just one person?",
+      "Single member family count"
+    ],
+    "sql": "SELECT\n  COUNT(*)::int AS single_member_families\nFROM families\nWHERE member_count = 1",
+    "description": "Number of families with exactly one member"
+  },
+  {
+    "patterns": [
+      "How many members are in each country?",
+      "Member count by country",
+      "Which countries do our members live in?",
+      "Geographic distribution of members by country"
+    ],
+    "sql": "SELECT\n  ma.country,\n  COUNT(DISTINCT ma.member_id)::int AS member_count\nFROM member_addresses ma\nWHERE ma.is_current = true\n  AND ma.country IS NOT NULL\nGROUP BY ma.country\nORDER BY member_count DESC\nLIMIT 200",
+    "description": "Member count grouped by current country of residence"
+  },
+  {
+    "patterns": [
+      "How many new members were added each month?",
+      "Member registration trend by month",
+      "Show me new member signups over time",
+      "Monthly member growth"
+    ],
+    "sql": "SELECT\n  DATE_TRUNC('month',\n  created_at)::date AS month,\n  COUNT(*)::int AS new_members\nFROM members\nGROUP BY month\nORDER BY month DESC\nLIMIT 200",
+    "description": "Number of new members added per month"
+  },
+  {
+    "patterns": [
+      "How many members are in MMS vs not in MMS?",
+      "MMS membership breakdown",
+      "What is the MMS status distribution?",
+      "Count of MMS vs non-MMS members"
+    ],
+    "sql": "SELECT\n  CASE WHEN in_mms THEN 'In MMS' ELSE 'Not in MMS' END AS mms_status,\n  COUNT(*)::int AS member_count\nFROM members\nGROUP BY in_mms\nORDER BY member_count DESC",
+    "description": "Member count split by MMS membership status"
+  },
+  {
+    "patterns": [
+      "What are the most common last names?",
+      "Top 20 most frequent surnames",
+      "Which last names appear most often?",
+      "Most popular last names among members"
+    ],
+    "sql": "SELECT\n  last_name,\n  COUNT(*)::int AS member_count\nFROM members\nGROUP BY last_name\nORDER BY member_count DESC\nLIMIT 20",
+    "description": "Top 20 most common member last names"
+  },
+  {
+    "patterns": [
+      "How many families are in each state?",
+      "Family count by state",
+      "Which states have the most families?",
+      "Distribution of families across states"
+    ],
+    "sql": "SELECT\n  ma.state,\n  COUNT(DISTINCT m.family_id)::int AS family_count\nFROM members m\nJOIN member_addresses ma\n  ON m.member_id = ma.member_id\nWHERE ma.is_current = true\n  AND ma.state IS NOT NULL\nGROUP BY ma.state\nORDER BY family_count DESC\nLIMIT 200",
+    "description": "Number of distinct families per state based on current member addresses"
+  },
+  {
+    "patterns": [
+      "Which families have all members with the same last name?",
+      "Families sharing a single surname",
+      "Show families where everyone has the same last name",
+      "Families with one common last name"
+    ],
+    "sql": "SELECT\n  f.family_id,\n  MIN(m.last_name) AS family_name,\n  COUNT(m.member_id)::int AS member_count\nFROM families f\nJOIN members m\n  ON f.family_id = m.family_id\nGROUP BY f.family_id\nHAVING COUNT(DISTINCT m.last_name) = 1\nORDER BY member_count DESC\nLIMIT 200",
+    "description": "Families where every member shares the same last name"
+  },
+  {
+    "patterns": [
+      "What are the top zip codes by member count?",
+      "Which zip codes have the most members?",
+      "Member distribution by zipcode",
+      "Top 20 zip codes with the most members"
+    ],
+    "sql": "SELECT\n  ma.zipcode,\n  COUNT(DISTINCT ma.member_id)::int AS member_count\nFROM member_addresses ma\nWHERE ma.is_current = true\n  AND ma.zipcode IS NOT NULL\nGROUP BY ma.zipcode\nORDER BY member_count DESC\nLIMIT 20",
+    "description": "Top 20 zip codes ranked by number of members"
+  },
+  {
+    "patterns": [
+      "Which families have members living in different states?",
+      "Families spread across multiple states",
+      "Show me geographically dispersed families",
+      "Families with members in more than one state"
+    ],
+    "sql": "SELECT\n  f.family_id,\n  COUNT(DISTINCT m.member_id)::int AS family_member_count,\n  COUNT(DISTINCT ma.state)::int AS distinct_states,\n  STRING_AGG(DISTINCT ma.state,\n  ',\n  ' ORDER BY ma.state) AS states\nFROM families f\nJOIN members m\n  ON f.family_id = m.family_id\nJOIN member_addresses ma\n  ON m.member_id = ma.member_id\n  AND ma.is_current = true\nWHERE ma.state IS NOT NULL\nGROUP BY f.family_id\nHAVING COUNT(DISTINCT ma.state) > 1\nORDER BY distinct_states DESC\nLIMIT 200",
+    "description": "Families whose members currently reside in more than one state"
+  },
+  {
+    "patterns": [
+      "Total checked-in attendance per event type per year",
+      "How many unique attendees per event type each year?",
+      "Yearly attendance breakdown by event type",
+      "Show me attendance numbers for each event type by year"
+    ],
+    "sql": "SELECT\n  et.type_name,\n  e.year,\n  COUNT(DISTINCT ea.member_id)::int AS unique_attendees\nFROM event_attendance ea\nJOIN events e\n  ON ea.event_id = e.event_id\nJOIN event_types et\n  ON e.event_type_id = et.event_type_id\nWHERE ea.checked_in = true\nGROUP BY et.type_name, e.year\nORDER BY et.type_name, e.year\nLIMIT 200",
+    "description": "Unique checked-in attendees broken down by event type and year"
+  },
+  {
+    "patterns": [
+      "How many events had gnanvidhi each year?",
+      "Number of gnanvidhi events by year",
+      "Events with gnanvidhi grouped by year",
+      "Yearly count of events that included gnanvidhi"
+    ],
+    "sql": "SELECT\n  e.year,\n  COUNT(*)::int AS gnanvidhi_event_count\nFROM events e\nWHERE e.has_gnanvidhi = true\nGROUP BY e.year\nORDER BY e.year",
+    "description": "Count of events that included gnanvidhi per year"
+  },
+  {
+    "patterns": [
+      "Average attendance per event by zone",
+      "What is the average number of attendees per event in each zone?",
+      "Which zone has the highest average event turnout?",
+      "Zone-wise average attendance per event"
+    ],
+    "sql": "WITH event_counts AS (SELECT\n  e.event_id,\n  e.zone_id,\n  COUNT(DISTINCT ea.member_id)::int AS attendee_count FROM events e JOIN event_attendance ea ON e.event_id = ea.event_id WHERE ea.checked_in = true GROUP BY e.event_id,\n  e.zone_id)\nSELECT z.zone_name,\n  ROUND(AVG(ec.attendee_count),\n  1) AS avg_attendance_per_event\nFROM event_counts ec\nJOIN zones z\n  ON ec.zone_id = z.zone_id\nGROUP BY z.zone_name\nORDER BY avg_attendance_per_event DESC",
+    "description": "Average number of unique checked-in attendees per event for each zone"
+  },
+  {
+    "patterns": [
+      "Top 10 events by check-in count",
+      "Which events had the most attendees?",
+      "Largest events by number of people checked in",
+      "What are the biggest events by attendance?",
+      "Top 10 most attended events"
+    ],
+    "sql": "SELECT\n  e.event_name,\n  e.year,\n  et.type_name,\n  COUNT(DISTINCT ea.member_id)::int AS checked_in_count\nFROM events e\nJOIN event_attendance ea\n  ON e.event_id = ea.event_id\nJOIN event_types et\n  ON e.event_type_id = et.event_type_id\nWHERE ea.checked_in = true\nGROUP BY e.event_id, e.event_name, e.year, et.type_name\nORDER BY checked_in_count DESC\nLIMIT 10",
+    "description": "Top 10 events ranked by number of unique checked-in attendees"
+  },
+  {
+    "patterns": [
+      "Virtual vs in-person event attendance",
+      "How does attendance compare between virtual and in-person events?",
+      "Compare virtual and in-person events by attendee count",
+      "Breakdown of attendance by virtual versus physical events"
+    ],
+    "sql": "SELECT\n  CASE WHEN e.is_virtual THEN 'Virtual' ELSE 'In-Person' END AS event_format,\n  COUNT(DISTINCT e.event_id)::int AS event_count,\n  COUNT(DISTINCT ea.member_id)::int AS unique_attendees\nFROM events e\nJOIN event_attendance ea\n  ON e.event_id = ea.event_id\nWHERE ea.checked_in = true\nGROUP BY e.is_virtual\nORDER BY unique_attendees DESC",
+    "description": "Comparison of event count and unique attendees between virtual and in-person events"
+  },
+  {
+    "patterns": [
+      "How many events per zone per year?",
+      "Zone-wise event count by year",
+      "Number of events in each zone each year",
+      "Events grouped by zone and year"
+    ],
+    "sql": "SELECT\n  z.zone_name,\n  e.year,\n  COUNT(*)::int AS event_count\nFROM events e\nJOIN zones z\n  ON e.zone_id = z.zone_id\nGROUP BY z.zone_name, e.year\nORDER BY z.zone_name, e.year\nLIMIT 200",
+    "description": "Number of events per zone per year"
+  },
+  {
+    "patterns": [
+      "Events by target demographic",
+      "How many events target each demographic?",
+      "What demographics do events target and how many attendees?",
+      "Breakdown of events and attendance by target demographic"
+    ],
+    "sql": "SELECT\n  e.target_demographic,\n  COUNT(DISTINCT e.event_id)::int AS event_count,\n  COUNT(DISTINCT ea.member_id)::int AS unique_attendees\nFROM events e\nLEFT JOIN event_attendance ea\n  ON e.event_id = ea.event_id\n  AND ea.checked_in = true\nWHERE e.target_demographic IS NOT NULL\nGROUP BY e.target_demographic\nORDER BY event_count DESC\nLIMIT 200",
+    "description": "Event count and unique attendees grouped by target demographic"
+  },
+  {
+    "patterns": [
+      "Monthly attendance trend across all events",
+      "How does attendance vary by month?",
+      "Number of attendees per month per year",
+      "Show monthly attendance numbers over time"
+    ],
+    "sql": "SELECT\n  EXTRACT(YEAR FROM e.start_date)::int AS event_year,\n  EXTRACT(MONTH FROM e.start_date)::int AS event_month,\n  COUNT(DISTINCT ea.member_id)::int AS unique_attendees\nFROM event_attendance ea\nJOIN events e\n  ON ea.event_id = e.event_id\nWHERE ea.checked_in = true\n  AND e.start_date IS NOT NULL\nGROUP BY event_year, event_month\nORDER BY event_year, event_month\nLIMIT 200",
+    "description": "Monthly trend of unique checked-in attendees across all events"
+  },
+  {
+    "patterns": [
+      "Registration vs check-in rate by event type",
+      "What percentage of registered members actually checked in for each event type?",
+      "Show me the conversion rate from registration to check-in by event type",
+      "Check-in rate compared to registrations per event type"
+    ],
+    "sql": "SELECT\n  et.type_name,\n  COUNT(DISTINCT CASE WHEN ea.registered THEN ea.member_id END)::int AS registered_count,\n  COUNT(DISTINCT CASE WHEN ea.checked_in THEN ea.member_id END)::int AS checked_in_count,\n  ROUND(COUNT(DISTINCT CASE WHEN ea.checked_in THEN ea.member_id END)::numeric * 100.0 / NULLIF(COUNT(DISTINCT CASE WHEN ea.registered THEN ea.member_id END),\n  0),\n  1) AS checkin_rate_pct\nFROM event_attendance ea\nJOIN events e\n  ON ea.event_id = e.event_id\nJOIN event_types et\n  ON e.event_type_id = et.event_type_id\nGROUP BY et.type_name\nORDER BY checkin_rate_pct DESC\nLIMIT 200",
+    "description": "Registration count, check-in count, and check-in rate percentage by event type"
+  },
+  {
+    "patterns": [
+      "How many people took gnan at each event?",
+      "Gnan taken count per event",
+      "Events ranked by number of gnan recipients",
+      "Which events had the most gnan takers?"
+    ],
+    "sql": "SELECT\n  e.event_name,\n  e.year,\n  COUNT(DISTINCT ea.member_id)::int AS gnan_taken_count\nFROM event_attendance ea\nJOIN events e\n  ON ea.event_id = e.event_id\nWHERE ea.gnan_taken = true\nGROUP BY e.event_id, e.event_name, e.year\nORDER BY gnan_taken_count DESC\nLIMIT 200",
+    "description": "Number of unique members who took gnan at each event"
+  },
+  {
+    "patterns": [
+      "Which zones have the most total attendees?",
+      "Zones ranked by total unique attendees",
+      "Total attendance by zone across all events",
+      "Zone ranking by number of unique checked-in members"
+    ],
+    "sql": "SELECT\n  z.zone_name,\n  COUNT(DISTINCT ea.member_id)::int AS unique_attendees\nFROM event_attendance ea\nJOIN events e\n  ON ea.event_id = e.event_id\nJOIN zones z\n  ON e.zone_id = z.zone_id\nWHERE ea.checked_in = true\nGROUP BY z.zone_name\nORDER BY unique_attendees DESC",
+    "description": "Zones ranked by total unique checked-in attendees across all events"
+  },
+  {
+    "patterns": [
+      "Year-over-year attendance growth",
+      "How has attendance grown year over year?",
+      "Annual attendance growth percentage",
+      "Show me the attendance trend and growth rate by year"
+    ],
+    "sql": "WITH yearly AS (SELECT\n  e.year,\n  COUNT(DISTINCT ea.member_id)::int AS unique_attendees FROM event_attendance ea JOIN events e ON ea.event_id = e.event_id WHERE ea.checked_in = true GROUP BY e.year)\nSELECT y.year,\n  y.unique_attendees,\n  LAG(y.unique_attendees) OVER (ORDER BY y.year) AS prev_year_attendees,\n  ROUND((y.unique_attendees - LAG(y.unique_attendees) OVER (ORDER BY y.year))::numeric * 100.0 / NULLIF(LAG(y.unique_attendees) OVER (ORDER BY y.year),\n  0),\n  1) AS growth_pct\nFROM yearly y\nORDER BY y.year",
+    "description": "Year-over-year unique attendance with growth percentage"
+  },
+  {
+    "patterns": [
+      "Average age of attendees by event type",
+      "What is the average age at events for each event type?",
+      "Age breakdown by event type",
+      "Which event types attract the youngest or oldest attendees?"
+    ],
+    "sql": "SELECT\n  et.type_name,\n  ROUND(AVG(ea.age_at_event),\n  1) AS avg_age,\n  MIN(ea.age_at_event)::int AS min_age,\n  MAX(ea.age_at_event)::int AS max_age\nFROM event_attendance ea\nJOIN events e\n  ON ea.event_id = e.event_id\nJOIN event_types et\n  ON e.event_type_id = et.event_type_id\nWHERE ea.age_at_event IS NOT NULL\nGROUP BY et.type_name\nORDER BY avg_age",
+    "description": "Average, minimum, and maximum attendee age by event type"
+  },
+  {
+    "patterns": [
+      "Which events had no check-ins?",
+      "Events with zero attendance",
+      "List events where nobody checked in",
+      "Are there any events with no one checked in?"
+    ],
+    "sql": "SELECT\n  e.event_name,\n  e.year,\n  et.type_name\nFROM events e\nJOIN event_types et\n  ON e.event_type_id = et.event_type_id\nLEFT JOIN event_attendance ea\n  ON e.event_id = ea.event_id\n  AND ea.checked_in = true\nWHERE ea.attendance_id IS NULL\nORDER BY e.year DESC, e.event_name\nLIMIT 200",
+    "description": "Events that had no checked-in attendees"
+  },
+  {
+    "patterns": [
+      "Attendance by gender for each event type",
+      "Gender split of attendees per event type",
+      "How many males and females attended each event type?",
+      "Show me gender breakdown of attendance by event type"
+    ],
+    "sql": "SELECT\n  et.type_name,\n  m.gender,\n  COUNT(DISTINCT ea.member_id)::int AS attendee_count\nFROM event_attendance ea\nJOIN events e\n  ON ea.event_id = e.event_id\nJOIN event_types et\n  ON e.event_type_id = et.event_type_id\nJOIN members m\n  ON ea.member_id = m.member_id\nWHERE ea.checked_in = true\n  AND m.gender IS NOT NULL\nGROUP BY et.type_name, m.gender\nORDER BY et.type_name, m.gender\nLIMIT 200",
+    "description": "Unique checked-in attendees by gender for each event type"
+  },
+  {
+    "patterns": [
+      "What percentage of room bookings resulted in actual stays?",
+      "Show me the overall stay rate for room bookings",
+      "How many bookings were no-shows vs actually stayed?",
+      "What fraction of people who booked rooms actually stayed in them?"
+    ],
+    "sql": "SELECT\n  COUNT(*) FILTER (WHERE room_booked = true)::int AS total_booked,\n  COUNT(*) FILTER (WHERE stayed_in_room = true)::int AS actually_stayed,\n  COUNT(*) FILTER (WHERE room_booked = true AND stayed_in_room = false)::int AS no_shows,\n  ROUND(100.0 * COUNT(*) FILTER (WHERE stayed_in_room = true) / NULLIF(COUNT(*) FILTER (WHERE room_booked = true),\n  0),\n  2) AS stay_percentage\nFROM room_bookings\nWHERE room_booked = true",
+    "description": "Overall percentage of room bookings where the guest actually stayed"
+  },
+  {
+    "patterns": [
+      "Which room types are booked most often?",
+      "Most popular room types by number of bookings",
+      "Rank room types by booking count",
+      "What are the most commonly booked room types?"
+    ],
+    "sql": "SELECT\n  rt.canonical_name AS room_type,\n  COUNT(*)::int AS total_bookings\nFROM room_bookings rb\nJOIN room_types rt\n  ON rb.room_type_id = rt.room_type_id\nWHERE rb.room_booked = true\nGROUP BY rt.room_type_id, rt.canonical_name\nORDER BY total_bookings DESC\nLIMIT 200",
+    "description": "Room types ranked by total number of bookings"
+  },
+  {
+    "patterns": [
+      "What is the average number of occupants per booking for each room type?",
+      "Average occupancy by room type",
+      "How many people typically share a room by room type?",
+      "Show average occupants per room type"
+    ],
+    "sql": "SELECT\n  rt.canonical_name AS room_type,\n  COUNT(*)::int AS total_bookings,\n  ROUND(AVG(rb.occupants),\n  2) AS avg_occupants\nFROM room_bookings rb\nJOIN room_types rt\n  ON rb.room_type_id = rt.room_type_id\nWHERE rb.room_booked = true\n  AND rb.occupants > 0\nGROUP BY rt.room_type_id, rt.canonical_name\nORDER BY avg_occupants DESC\nLIMIT 200",
+    "description": "Average number of occupants per booking broken down by room type"
+  },
+  {
+    "patterns": [
+      "Which states have the most hotel bookings?",
+      "Hotel bookings grouped by state",
+      "Rank states by total room bookings",
+      "Show booking counts by hotel state"
+    ],
+    "sql": "SELECT\n  h.state,\n  COUNT(*)::int AS total_bookings,\n  COUNT(DISTINCT h.hotel_id)::int AS hotel_count\nFROM room_bookings rb\nJOIN hotels h\n  ON rb.hotel_id = h.hotel_id\nWHERE rb.room_booked = true\n  AND h.state IS NOT NULL\nGROUP BY h.state\nORDER BY total_bookings DESC\nLIMIT 200",
+    "description": "States ranked by total hotel room bookings with hotel count"
+  },
+  {
+    "patterns": [
+      "Top 20 events by number of room bookings",
+      "Which events had the most hotel room bookings?",
+      "Events ranked by hotel demand",
+      "Show events with the highest number of room bookings"
+    ],
+    "sql": "SELECT\n  e.event_name,\n  e.year,\n  COUNT(*)::int AS total_bookings,\n  COUNT(DISTINCT rb.member_id)::int AS unique_guests\nFROM room_bookings rb\nJOIN events e\n  ON rb.event_id = e.event_id\nWHERE rb.room_booked = true\nGROUP BY e.event_id, e.event_name, e.year\nORDER BY total_bookings DESC\nLIMIT 20",
+    "description": "Top 20 events ranked by number of room bookings"
+  },
+  {
+    "patterns": [
+      "What is the average stay duration at each hotel?",
+      "Average length of stay by hotel in days",
+      "How long do guests typically stay at each hotel?",
+      "Show average check-in to check-out duration per hotel"
+    ],
+    "sql": "SELECT\n  h.hotel_name,\n  COUNT(*)::int AS total_stays,\n  ROUND(AVG(EXTRACT(EPOCH FROM (rb.check_out_date - rb.check_in_date)) / 86400),\n  1) AS avg_stay_days\nFROM room_bookings rb\nJOIN hotels h\n  ON rb.hotel_id = h.hotel_id\nWHERE rb.stayed_in_room = true\n  AND rb.check_in_date IS NOT NULL\n  AND rb.check_out_date IS NOT NULL\nGROUP BY h.hotel_id, h.hotel_name\nORDER BY avg_stay_days DESC\nLIMIT 200",
+    "description": "Average stay duration in days for each hotel"
+  },
+  {
+    "patterns": [
+      "Top 20 families by number of room bookings",
+      "Which families booked the most rooms across all events?",
+      "Families with the highest total hotel bookings",
+      "Show the most frequent room-booking families"
+    ],
+    "sql": "SELECT\n  f.family_id,\n  f.member_count,\n  COUNT(*)::int AS total_bookings\nFROM room_bookings rb\nJOIN families f\n  ON rb.family_id = f.family_id\nWHERE rb.room_booked = true\nGROUP BY f.family_id, f.member_count\nORDER BY total_bookings DESC\nLIMIT 20",
+    "description": "Top 20 families ranked by total room bookings across all events"
+  },
+  {
+    "patterns": [
+      "Compare reserved inventory to actual bookings by hotel",
+      "How do actual room bookings compare to reserved inventory at each hotel?",
+      "Show inventory vs bookings by hotel",
+      "Hotel inventory utilization compared to actual bookings"
+    ],
+    "sql": "WITH inventory AS (SELECT\n  hotel_id,\n  SUM(rooms_reserved)::int AS total_reserved FROM hotel_room_inventory GROUP BY hotel_id),\n  bookings AS (SELECT hotel_id,\n  COUNT(*)::int AS total_bookings FROM room_bookings WHERE room_booked = true GROUP BY hotel_id)\nSELECT h.hotel_name,\n  COALESCE(i.total_reserved,\n  0) AS rooms_reserved,\n  COALESCE(b.total_bookings,\n  0) AS actual_bookings,\n  CASE WHEN COALESCE(i.total_reserved,\n  0) > 0 THEN ROUND(100.0 * COALESCE(b.total_bookings,\n  0) / i.total_reserved,\n  2) ELSE 0 END AS booking_to_inventory_pct\nFROM hotels h\nLEFT JOIN inventory i\n  ON h.hotel_id = i.hotel_id\nLEFT JOIN bookings b\n  ON h.hotel_id = b.hotel_id\nWHERE COALESCE(i.total_reserved, 0) > 0\n  OR COALESCE(b.total_bookings, 0) > 0\nORDER BY rooms_reserved DESC\nLIMIT 200",
+    "description": "Comparison of reserved room inventory versus actual bookings at each hotel"
+  },
+  {
+    "patterns": [
+      "What is the no-show rate by hotel?",
+      "Which hotels have the highest no-show percentage?",
+      "Show hotel no-show rates for room bookings",
+      "Hotels ranked by percentage of bookings where guests did not stay"
+    ],
+    "sql": "SELECT\n  h.hotel_name,\n  COUNT(*)::int AS total_booked,\n  COUNT(*) FILTER (WHERE rb.stayed_in_room = true)::int AS actually_stayed,\n  COUNT(*) FILTER (WHERE rb.stayed_in_room = false)::int AS no_shows,\n  ROUND(100.0 * COUNT(*) FILTER (WHERE rb.stayed_in_room = false) / NULLIF(COUNT(*),\n  0),\n  2) AS no_show_pct\nFROM room_bookings rb\nJOIN hotels h\n  ON rb.hotel_id = h.hotel_id\nWHERE rb.room_booked = true\nGROUP BY h.hotel_id, h.hotel_name\nORDER BY no_show_pct DESC\nLIMIT 200",
+    "description": "No-show rate percentage by hotel for room bookings"
+  },
+  {
+    "patterns": [
+      "Room booking trends by year",
+      "How have room bookings changed year over year?",
+      "Show total bookings and unique guests per year",
+      "Annual room booking volume trend"
+    ],
+    "sql": "SELECT\n  e.year,\n  COUNT(*)::int AS total_bookings,\n  COUNT(DISTINCT rb.member_id)::int AS unique_guests,\n  COUNT(DISTINCT rb.hotel_id)::int AS hotels_used\nFROM room_bookings rb\nJOIN events e\n  ON rb.event_id = e.event_id\nWHERE rb.room_booked = true\nGROUP BY e.year\nORDER BY e.year",
+    "description": "Room booking volume and unique guest count by year"
+  },
+  {
+    "patterns": [
+      "What is the room type distribution percentage at each hotel?",
+      "Show the percentage breakdown of room types per hotel",
+      "Room type mix by hotel",
+      "What share of bookings does each room type have at each hotel?"
+    ],
+    "sql": "WITH hotel_totals AS (SELECT\n  hotel_id,\n  COUNT(*)::int AS total_bookings FROM room_bookings WHERE room_booked = true GROUP BY hotel_id)\nSELECT h.hotel_name,\n  rt.canonical_name AS room_type,\n  COUNT(*)::int AS bookings,\n  ROUND(100.0 * COUNT(*) / ht.total_bookings,\n  2) AS pct_of_hotel_bookings\nFROM room_bookings rb\nJOIN hotels h\n  ON rb.hotel_id = h.hotel_id\nJOIN room_types rt\n  ON rb.room_type_id = rt.room_type_id\nJOIN hotel_totals ht\n  ON rb.hotel_id = ht.hotel_id\nWHERE rb.room_booked = true\nGROUP BY h.hotel_id, h.hotel_name, rt.room_type_id, rt.canonical_name, ht.total_bookings\nORDER BY h.hotel_name, bookings DESC\nLIMIT 200",
+    "description": "Percentage distribution of room types booked at each hotel"
+  },
+  {
+    "patterns": [
+      "What percentage of event attendees booked hotel rooms?",
+      "Room booking rate relative to attendance per event",
+      "Which events had the highest ratio of room bookings to check-ins?",
+      "Compare room bookings to attendance for each event"
+    ],
+    "sql": "WITH event_bookings AS (SELECT\n  event_id,\n  COUNT(DISTINCT member_id)::int AS booked_members FROM room_bookings WHERE room_booked = true GROUP BY event_id),\n  event_checkins AS (SELECT event_id,\n  COUNT(DISTINCT member_id)::int AS checked_in_members FROM event_attendance WHERE checked_in = true GROUP BY event_id)\nSELECT e.event_name,\n  e.year,\n  COALESCE(ec.checked_in_members,\n  0) AS checked_in,\n  COALESCE(eb.booked_members,\n  0) AS room_bookers,\n  CASE WHEN COALESCE(ec.checked_in_members,\n  0) > 0 THEN ROUND(100.0 * eb.booked_members / ec.checked_in_members,\n  2) ELSE 0 END AS booking_to_attendance_pct\nFROM event_bookings eb\nJOIN events e\n  ON eb.event_id = e.event_id\nLEFT JOIN event_checkins ec\n  ON eb.event_id = ec.event_id\nORDER BY booking_to_attendance_pct DESC\nLIMIT 20",
+    "description": "Ratio of room bookers to checked-in attendees per event"
+  },
+  {
+    "patterns": [
+      "Compare hotel bookings for GP events vs non-GP events",
+      "Which hotels are used most for GP events?",
+      "Hotel booking split between GP and non-GP events",
+      "Show GP vs non-GP booking counts by hotel"
+    ],
+    "sql": "SELECT\n  h.hotel_name,\n  COUNT(*) FILTER (WHERE e.is_gp_event = true)::int AS gp_bookings,\n  COUNT(*) FILTER (WHERE e.is_gp_event = false)::int AS non_gp_bookings,\n  COUNT(*)::int AS total_bookings,\n  ROUND(100.0 * COUNT(*) FILTER (WHERE e.is_gp_event = true) / NULLIF(COUNT(*),\n  0),\n  2) AS gp_pct\nFROM room_bookings rb\nJOIN hotels h\n  ON rb.hotel_id = h.hotel_id\nJOIN events e\n  ON rb.event_id = e.event_id\nWHERE rb.room_booked = true\nGROUP BY h.hotel_id, h.hotel_name\nORDER BY total_bookings DESC\nLIMIT 200",
+    "description": "Hotel bookings split between GP and non-GP events with GP percentage"
+  },
+  {
+    "patterns": [
+      "What is the average rooms per family by event type?",
+      "How many rooms do families typically book by event type?",
+      "Average family room count grouped by event type",
+      "Show average rooms booked per family for each event type"
+    ],
+    "sql": "SELECT\n  et.type_name AS event_type,\n  COUNT(DISTINCT rb.family_id)::int AS unique_families,\n  ROUND(AVG(rb.rooms_per_family),\n  2) AS avg_rooms_per_family\nFROM room_bookings rb\nJOIN events e\n  ON rb.event_id = e.event_id\nJOIN event_types et\n  ON e.event_type_id = et.event_type_id\nWHERE rb.room_booked = true\n  AND rb.rooms_per_family > 0\nGROUP BY et.event_type_id, et.type_name\nORDER BY avg_rooms_per_family DESC",
+    "description": "Average number of rooms booked per family broken down by event type"
+  },
+  {
+    "patterns": [
+      "Which hotels have the most inventory reserved across all events?",
+      "Total rooms reserved by hotel from inventory data",
+      "Rank hotels by total reserved room inventory",
+      "Show hotels with their total reserved inventory and event count"
+    ],
+    "sql": "SELECT\n  h.hotel_name,\n  COUNT(DISTINCT hri.event_id)::int AS events_hosted,\n  SUM(hri.rooms_reserved)::int AS total_rooms_reserved,\n  COUNT(DISTINCT hri.room_type_id)::int AS room_types_offered\nFROM hotel_room_inventory hri\nJOIN hotels h\n  ON hri.hotel_id = h.hotel_id\nGROUP BY h.hotel_id, h.hotel_name\nORDER BY total_rooms_reserved DESC\nLIMIT 200",
+    "description": "Hotels ranked by total reserved room inventory across all events"
+  },
+  {
+    "patterns": [
+      "members who took gnan but never checked in to any event",
+      "gnan recipients who never attended an event",
+      "people with gnan records but no check-ins",
+      "who took gnan without ever checking in"
+    ],
+    "sql": "SELECT\n  m.member_id,\n  m.first_name,\n  m.last_name\nFROM members m\nJOIN gnan_records gr\n  ON m.member_id = gr.member_id\nWHERE NOT EXISTS (SELECT 1 FROM event_attendance ea WHERE ea.member_id = m.member_id AND ea.checked_in = true)\nGROUP BY m.member_id, m.first_name, m.last_name\nORDER BY m.last_name, m.first_name\nLIMIT 200",
+    "description": "Members who have gnan records but were never checked in to any event"
+  },
+  {
+    "patterns": [
+      "year-over-year gnan recipient growth",
+      "gnan recipients per year with growth percentage",
+      "how is gnan count growing year over year",
+      "annual gnan growth rate"
+    ],
+    "sql": "WITH yearly AS (SELECT\n  EXTRACT(YEAR FROM gr.gnan_date)::int AS gnan_year,\n  COUNT(DISTINCT gr.member_id)::int AS recipient_count FROM gnan_records gr WHERE gr.gnan_date IS NOT NULL GROUP BY gnan_year)\nSELECT gnan_year,\n  recipient_count,\n  LAG(recipient_count) OVER (ORDER BY gnan_year) AS prev_year_count,\n  ROUND((recipient_count - LAG(recipient_count) OVER (ORDER BY gnan_year))::numeric / NULLIF(LAG(recipient_count) OVER (ORDER BY gnan_year),\n  0) * 100,\n  1) AS growth_pct\nFROM yearly\nORDER BY gnan_year",
+    "description": "Year-over-year count of unique gnan recipients with growth percentage"
+  },
+  {
+    "patterns": [
+      "average age of gnan takers vs non-takers",
+      "age comparison between those who took gnan and those who did not",
+      "do gnan recipients tend to be younger or older than other attendees",
+      "average attendee age split by gnan taken status"
+    ],
+    "sql": "SELECT\n  CASE WHEN ea.gnan_taken = true THEN 'Took Gnan' ELSE 'Did Not Take Gnan' END AS gnan_status,\n  COUNT(DISTINCT ea.member_id)::int AS member_count,\n  ROUND(AVG(ea.age_at_event),\n  1) AS avg_age\nFROM event_attendance ea\nWHERE ea.checked_in = true\n  AND ea.age_at_event IS NOT NULL\nGROUP BY ea.gnan_taken\nORDER BY ea.gnan_taken DESC",
+    "description": "Average age at event for checked-in attendees who took gnan versus those who did not"
+  },
+  {
+    "patterns": [
+      "members who attended events in 3 or more zones",
+      "which members checked in across multiple zones",
+      "people who traveled to at least 3 different zones for events",
+      "most geographically diverse attendees by zone count"
+    ],
+    "sql": "WITH member_zones AS (SELECT\n  ea.member_id,\n  COUNT(DISTINCT e.zone_id)::int AS zone_count FROM event_attendance ea JOIN events e ON ea.event_id = e.event_id WHERE ea.checked_in = true AND e.zone_id IS NOT NULL GROUP BY ea.member_id HAVING COUNT(DISTINCT e.zone_id) >= 3)\nSELECT m.member_id,\n  m.first_name,\n  m.last_name,\n  mz.zone_count\nFROM member_zones mz\nJOIN members m\n  ON mz.member_id = m.member_id\nORDER BY mz.zone_count DESC, m.last_name\nLIMIT 200",
+    "description": "Members who checked in to events across 3 or more different zones"
+  },
+  {
+    "patterns": [
+      "members who registered but never checked in",
+      "perpetual no-shows who registered but never attended",
+      "people who signed up for events but never showed up",
+      "members with registrations but zero check-ins"
+    ],
+    "sql": "SELECT\n  m.member_id,\n  m.first_name,\n  m.last_name,\n  COUNT(DISTINCT ea.event_id)::int AS registered_events\nFROM members m\nJOIN event_attendance ea\n  ON m.member_id = ea.member_id\nWHERE ea.registered = true\n  AND NOT EXISTS (SELECT 1 FROM event_attendance ea2 WHERE ea2.member_id = m.member_id AND ea2.checked_in = true)\nGROUP BY m.member_id, m.first_name, m.last_name\nORDER BY registered_events DESC\nLIMIT 200",
+    "description": "Members who registered for at least one event but never checked in to any event"
+  },
+  {
+    "patterns": [
+      "gnan conversion rate by event",
+      "what percentage of attendees took gnan at each event",
+      "gnan uptake rate per event",
+      "ratio of gnan takers to checked-in attendees for each event"
+    ],
+    "sql": "WITH event_stats AS (SELECT\n  ea.event_id,\n  COUNT(DISTINCT CASE WHEN ea.checked_in = true THEN ea.member_id END)::int AS checked_in_count,\n  COUNT(DISTINCT CASE WHEN ea.gnan_taken = true THEN ea.member_id END)::int AS gnan_count FROM event_attendance ea GROUP BY ea.event_id)\nSELECT e.event_name,\n  e.year,\n  es.checked_in_count,\n  es.gnan_count,\n  ROUND(es.gnan_count::numeric / NULLIF(es.checked_in_count,\n  0) * 100,\n  1) AS gnan_conversion_pct\nFROM event_stats es\nJOIN events e\n  ON es.event_id = e.event_id\nWHERE es.checked_in_count > 0\nORDER BY gnan_conversion_pct DESC\nLIMIT 200",
+    "description": "Gnan conversion rate showing percentage of checked-in attendees who took gnan at each event"
+  },
+  {
+    "patterns": [
+      "top 20 members by number of events attended",
+      "who has checked in to the most events",
+      "most frequent event attendees",
+      "members ranked by event check-in count"
+    ],
+    "sql": "SELECT\n  m.member_id,\n  m.first_name,\n  m.last_name,\n  COUNT(DISTINCT ea.event_id)::int AS events_attended\nFROM members m\nJOIN event_attendance ea\n  ON m.member_id = ea.member_id\nWHERE ea.checked_in = true\nGROUP BY m.member_id, m.first_name, m.last_name\nORDER BY events_attended DESC\nLIMIT 20",
+    "description": "Top 20 members ranked by number of distinct events they checked in to"
+  },
+  {
+    "patterns": [
+      "first-time attendees per year",
+      "how many new attendees each year",
+      "new unique attendees by year",
+      "count of members attending their first event each year"
+    ],
+    "sql": "WITH first_attendance AS (SELECT\n  ea.member_id,\n  MIN(e.year) AS first_year FROM event_attendance ea JOIN events e ON ea.event_id = e.event_id WHERE ea.checked_in = true GROUP BY ea.member_id)\nSELECT first_year,\n  COUNT(*)::int AS new_attendees\nFROM first_attendance\nGROUP BY first_year\nORDER BY first_year",
+    "description": "Number of first-time checked-in attendees for each year"
+  },
+  {
+    "patterns": [
+      "members who took gnan more than once",
+      "duplicate gnan records per member",
+      "people with multiple gnan entries",
+      "who has taken gnan multiple times"
+    ],
+    "sql": "SELECT\n  m.member_id,\n  m.first_name,\n  m.last_name,\n  COUNT(gr.gnan_id)::int AS gnan_count\nFROM members m\nJOIN gnan_records gr\n  ON m.member_id = gr.member_id\nGROUP BY m.member_id, m.first_name, m.last_name\nHAVING COUNT(gr.gnan_id) > 1\nORDER BY gnan_count DESC\nLIMIT 200",
+    "description": "Members who have more than one gnan record"
+  },
+  {
+    "patterns": [
+      "gender breakdown of gnan recipients by year",
+      "male vs female gnan takers per year",
+      "gnan recipients split by gender and year",
+      "yearly gnan count by gender"
+    ],
+    "sql": "SELECT\n  EXTRACT(YEAR FROM gr.gnan_date)::int AS gnan_year,\n  m.gender,\n  COUNT(DISTINCT gr.member_id)::int AS recipient_count\nFROM gnan_records gr\nJOIN members m\n  ON gr.member_id = m.member_id\nWHERE gr.gnan_date IS NOT NULL\n  AND m.gender IS NOT NULL\nGROUP BY gnan_year, m.gender\nORDER BY gnan_year, m.gender",
+    "description": "Count of unique gnan recipients broken down by year and gender"
+  },
+  {
+    "patterns": [
+      "members active in at least 3 different years",
+      "who has attended events across 3 or more years",
+      "long-term attendees with multi-year participation",
+      "members with check-ins spanning 3+ years"
+    ],
+    "sql": "WITH member_years AS (SELECT\n  ea.member_id,\n  COUNT(DISTINCT e.year)::int AS years_active FROM event_attendance ea JOIN events e ON ea.event_id = e.event_id WHERE ea.checked_in = true GROUP BY ea.member_id HAVING COUNT(DISTINCT e.year) >= 3)\nSELECT m.member_id,\n  m.first_name,\n  m.last_name,\n  my.years_active\nFROM member_years my\nJOIN members m\n  ON my.member_id = m.member_id\nORDER BY my.years_active DESC, m.last_name\nLIMIT 200",
+    "description": "Members who checked in to events in 3 or more different years"
+  },
+  {
+    "patterns": [
+      "age statistics of gnan recipients",
+      "youngest and oldest gnan takers",
+      "age range of people who took gnan",
+      "min max and average age at gnan"
+    ],
+    "sql": "WITH gnan_ages AS (SELECT\n  gr.member_id,\n  ea.age_at_event AS age_at_gnan FROM gnan_records gr JOIN event_attendance ea ON gr.member_id = ea.member_id AND gr.event_id = ea.event_id WHERE ea.age_at_event IS NOT NULL)\nSELECT MIN(age_at_gnan)::int AS youngest_age,\n  MAX(age_at_gnan)::int AS oldest_age,\n  ROUND(AVG(age_at_gnan),\n  1) AS avg_age,\n  COUNT(DISTINCT member_id)::int AS total_recipients\nFROM gnan_ages",
+    "description": "Minimum, maximum, and average age of gnan recipients at the time of their event"
+  },
+  {
+    "patterns": [
+      "members who attended events but never took gnan",
+      "checked-in attendees with no gnan record",
+      "people who have been to events but haven't taken gnan",
+      "attendees without any gnan"
+    ],
+    "sql": "SELECT\n  m.member_id,\n  m.first_name,\n  m.last_name,\n  COUNT(DISTINCT ea.event_id)::int AS events_attended\nFROM members m\nJOIN event_attendance ea\n  ON m.member_id = ea.member_id\nWHERE ea.checked_in = true\n  AND NOT EXISTS (SELECT 1 FROM gnan_records gr WHERE gr.member_id = m.member_id)\nGROUP BY m.member_id, m.first_name, m.last_name\nORDER BY events_attended DESC\nLIMIT 200",
+    "description": "Members who checked in to at least one event but have no gnan record"
+  },
+  {
+    "patterns": [
+      "gnan recipients by zone",
+      "which zone has the most gnan takers",
+      "zone-wise gnan count",
+      "zones ranked by number of gnan recipients"
+    ],
+    "sql": "SELECT\n  z.zone_name,\n  COUNT(DISTINCT gr.member_id)::int AS gnan_recipients\nFROM gnan_records gr\nJOIN events e\n  ON gr.event_id = e.event_id\nJOIN zones z\n  ON e.zone_id = z.zone_id\nGROUP BY z.zone_name\nORDER BY gnan_recipients DESC",
+    "description": "Unique gnan recipients grouped by zone of the event where gnan was taken"
+  },
+  {
+    "patterns": [
+      "year-over-year attendance retention rate",
+      "what percentage of attendees return the following year",
+      "attendee retention from one year to the next",
+      "how many people come back the next year"
+    ],
+    "sql": "WITH yearly_attendees AS (SELECT DISTINCT\n  ea.member_id,\n  e.year FROM event_attendance ea JOIN events e ON ea.event_id = e.event_id WHERE ea.checked_in = true),\n  retention AS (SELECT y1.year AS base_year,\n  COUNT(DISTINCT y1.member_id)::int AS attendees,\n  COUNT(DISTINCT y2.member_id)::int AS returned_next_year FROM yearly_attendees y1 LEFT JOIN yearly_attendees y2 ON y1.member_id = y2.member_id AND y2.year = y1.year + 1 GROUP BY y1.year)\nSELECT base_year,\n  attendees,\n  returned_next_year,\n  ROUND(returned_next_year::numeric / NULLIF(attendees,\n  0) * 100,\n  1) AS retention_pct\nFROM retention\nORDER BY base_year",
+    "description": "Year-over-year attendance retention showing what percentage of each year's attendees returned the following year"
   }
 ]

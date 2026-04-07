@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 10214",
     "dev:full": "./dev.sh",
     "dev:quick": "./dev.sh --skip-seed",
     "dev:reset": "./dev.sh --reset",

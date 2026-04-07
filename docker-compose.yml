@@ -3,13 +3,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     ports:
-      - "5433:5432"
+      - "${DBDASH_PORT_DB:-10210}:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-dbdash}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dbdash_dev}
       POSTGRES_DB: ${POSTGRES_DB:-dbdash}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ${SSD_DATA}/dbdash/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dbdash} -d ${POSTGRES_DB:-dbdash}"]
       interval: 5s
@@ -32,6 +32,7 @@ services:
       - etl
 
   web:
+    profiles: [prod]
     build:
       context: .
       dockerfile: Dockerfile
@@ -39,10 +40,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - "${DBDASH_PORT_WEB:-10213}:3000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-dbdash}:${POSTGRES_PASSWORD:-dbdash_dev}@db:5432/${POSTGRES_DB:-dbdash}
     restart: unless-stopped
-
-volumes:
-  pgdata:
